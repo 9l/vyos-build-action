@@ -1,0 +1,36 @@
+name: VyOS 1.3 Rolling Release
+
+on:
+  schedule:
+    - cron: 0 3 * * *
+
+env:
+  GIT_CLONE_URL: https://github.com/vyos/vyos-build
+  BRANCH: current
+  ARCHITECTURE: amd64
+  BUILD_BY: vyos-build-action@github.com
+  BUILD_TYPE: release
+  VERSION: 1.3-rolling
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: vyos/vyos-build:current
+      options: --workdir /vyos --privileged
+    
+    steps:
+      - name: Clone source code
+        run: git clone -b $BRANCH --single-branch $GIT_CLONE_URL
+        
+      - name: Build VyOS ISO
+        working-directory: ./vyos-build
+        run: |
+          ./configure --architecture $ARCHITECTURE --build-by "$BUILD_BY"
+          sudo make iso
+          
+      - name: Upload VyOS ISO file
+        uses: actions/upload-artifact@v2
+        with:
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
