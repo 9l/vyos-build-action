@@ -46,12 +46,6 @@ jobs:
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-      
-      - name: show artifact folder
-        run: |
-          ls -al vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          cd vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          pwd
 
       - name: Create release
         id: create_release
