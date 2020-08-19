@@ -1,4 +1,4 @@
-name: VyOS 1.3 Rolling Release
+name: VyOS v1.3 Rolling Release
 
 on:
   schedule:
@@ -29,8 +29,16 @@ jobs:
           ./configure --architecture $ARCHITECTURE --build-by "$BUILD_BY"
           sudo make iso
           
-      - name: Upload VyOS ISO file
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
+
+      - name: Upload release asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset=$(find ./vyos-build/build/ -name "vyos-${{ env.VERSION }}-*.iso" | xargs)
+          tag_name="v${{ env.VERSION }}"
+          hub release edit -a "$asset" -m "" "$tag_name"
