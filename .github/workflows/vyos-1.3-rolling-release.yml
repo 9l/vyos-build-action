@@ -11,6 +11,7 @@ env:
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
   VERSION: 1.3-rolling
+  DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
   build:
@@ -23,10 +24,10 @@ jobs:
       - name: Clone source code
         run: git clone -b $BRANCH --single-branch $GIT_CLONE_URL
         
-      - name: Build VyOS ISO
+      - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          ./configure --architecture $ARCHITECTURE --build-by "$BUILD_BY"
+          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
           sudo make iso
           
       - name: Upload artifact
