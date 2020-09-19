@@ -11,7 +11,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  VERSION: 1.2.5
+  VERSION: 1.2.6
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: VyOS ${{ github.ref }}
-          body: VyOS ${GITHUB_REF##*/}
+          body: VyOS v${{ env.VERSION }}
           draft: false
           prerelease: false
 
