@@ -27,7 +27,7 @@ jobs:
           echo $GITHUB_REF
           echo ${GITHUB_REF}
           echo $VERSION
-          echo ${{ VERSION }}
+          echo ${VERSION}
           echo ${{ env.VERSION }}
           echo ${GITHUB_REF##*v}
           VERSION2 = "${GITHUB_REF##*v}"
