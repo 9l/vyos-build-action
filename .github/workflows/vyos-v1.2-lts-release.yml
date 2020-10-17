@@ -25,17 +25,20 @@ jobs:
       - name: Clone source code
         run: git clone -b $BRANCH --single-branch $GIT_CLONE_URL
         
-      - name: Build ISO
+      - name: Build VyOS $VERSION ISO file
         working-directory: ./vyos-build
         run: |
+          echo ${{ env.VERSIOM }}
+          echo ${GITHUB_REF##*v}
+          echo $VERSION
           ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
           sudo make iso
           
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
+          name: vyos-$VERSION-${{ env.ARCHITECTURE }}-iso
+          path: vyos-build/build/vyos-$VERSION-*.iso
 
   release:
     runs-on: ubuntu-latest
@@ -45,8 +48,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          name: vyos-$VERSION-${{ env.ARCHITECTURE }}-iso
+          path: vyos-$VERSION-${{ env.ARCHITECTURE }}-iso
 
       - name: Create release
         id: create_release
@@ -67,6 +70,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-          asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          asset_path: vyos-$VERSION-${{ env.ARCHITECTURE }}-iso/vyos-$VERSION-${{ env.ARCHITECTURE }}.iso
+          asset_name: vyos-$VERSION-${{ env.ARCHITECTURE }}.iso
           asset_content_type: application/octet-stream
