@@ -11,6 +11,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
+  VERSION: "${GITHUB_REF##*v}"
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -27,6 +28,16 @@ jobs:
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
+          echo $GITHUB_REF
+          echo ${GITHUB_REF}
+          echo ${{ GITHUB_REF##*v }}
+          echo $VERSION
+          echo ${VERSION}
+          echo ${{ VERSION }}
+          echo ${{ env.VERSION }}
+          echo ${GITHUB_REF##*v}
+          VERSION2 = "${GITHUB_REF##*v}"
+          echo $VERSION2
           ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${GITHUB_REF##*v}
           sudo make iso
           
