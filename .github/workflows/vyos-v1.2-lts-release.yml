@@ -11,7 +11,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  VERSION: "${GITHUB_REF##*v}"
+  VERSION: 1.2.6-S1
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${{ env.VERSION }}
+          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
           sudo make iso
           
       - name: Upload artifact
@@ -47,7 +47,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
       - name: Create release
         id: create_release
@@ -68,6 +67,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
           asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
           asset_content_type: application/octet-stream
