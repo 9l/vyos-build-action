@@ -24,27 +24,19 @@ jobs:
     steps:
       - name: Clone source code
         run:
-          echo $GITHUB_REF
-          echo ${GITHUB_REF}
-          echo $VERSION
-          echo ${VERSION}
-          echo ${{ env.VERSION }}
-          echo ${GITHUB_REF##*v}
-          VERSION2 = "${GITHUB_REF##*v}"
-          echo $VERSION2
           git clone -b $BRANCH --single-branch $GIT_CLONE_URL
         
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${GITHUB_REF##*v}
+          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${{ env.VERSION }}
           sudo make iso
           
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: vyos-${GITHUB_REF##*v}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-build/build/vyos-${GITHUB_REF##*v}-*.iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
 
   release:
     runs-on: ubuntu-latest
@@ -54,8 +46,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: vyos-${GITHUB_REF##*v}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-${GITHUB_REF##*v}-${{ env.ARCHITECTURE }}-iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
       - name: Create release
         id: create_release
@@ -76,6 +68,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: vyos-${GITHUB_REF##*v}-${{ env.ARCHITECTURE }}-iso/vyos-${GITHUB_REF##*v}-${{ env.ARCHITECTURE }}.iso
-          asset_name: vyos-${GITHUB_REF##*v}-${{ env.ARCHITECTURE }}.iso
+          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
           asset_content_type: application/octet-stream
