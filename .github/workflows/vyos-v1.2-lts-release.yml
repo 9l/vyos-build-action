@@ -11,7 +11,6 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  VERSION: ${{ github.ref##*v }}
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -27,12 +26,16 @@ jobs:
         
       - name: Build ISO
         working-directory: ./vyos-build
+        env:
+          VERSION: ${{ github.ref##*v }}
         run: |
           ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
           sudo make iso
           
       - name: Upload artifact
         uses: actions/upload-artifact@v2
+        env:
+          VERSION: ${{ github.ref##*v }}
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
@@ -44,6 +47,8 @@ jobs:
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
+        env:
+          VERSION: ${{ github.ref##*v }}
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
@@ -53,6 +58,7 @@ jobs:
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref##*v }}
         with:
           tag_name: ${{ github.ref }}
           release_name: VyOS ${{ github.ref }}
@@ -65,6 +71,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref##*v }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
           asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
