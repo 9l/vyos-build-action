@@ -55,8 +55,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: VyOS LTS Release ${{ github.ref }}
-          body: VyOS LTS Release ${{ github.ref }}
+          release_name: VyOS ${{ github.ref }} LTS Release
+          body: VyOS ${GITHUB_REF##*v} LTS Release
           draft: false
           prerelease: false
 
