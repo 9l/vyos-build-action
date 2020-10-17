@@ -23,11 +23,7 @@ jobs:
     
     steps:
       - name: Clone source code
-        run: git clone -b $BRANCH --single-branch $GIT_CLONE_URL
-        
-      - name: Build ISO
-        working-directory: ./vyos-build
-        run: |
+        run:
           echo $GITHUB_REF
           echo ${GITHUB_REF}
           echo ${{ GITHUB_REF##*v }}
@@ -38,6 +34,11 @@ jobs:
           echo ${GITHUB_REF##*v}
           VERSION2 = "${GITHUB_REF##*v}"
           echo $VERSION2
+          git clone -b $BRANCH --single-branch $GIT_CLONE_URL
+        
+      - name: Build ISO
+        working-directory: ./vyos-build
+        run: |
           ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${GITHUB_REF##*v}
           sudo make iso
           
