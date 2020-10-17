@@ -26,7 +26,6 @@ jobs:
         run:
           echo $GITHUB_REF
           echo ${GITHUB_REF}
-          echo ${{ GITHUB_REF##*v }}
           echo $VERSION
           echo ${VERSION}
           echo ${{ VERSION }}
