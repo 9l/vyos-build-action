@@ -11,6 +11,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
+  VERSION: ${GITHUB_REF##*v}
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -27,14 +28,14 @@ jobs:
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version ${{ github.ref##*v }}
+          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
           sudo make iso
           
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: vyos-${{ github.ref##*v }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-build/build/vyos-${{ github.ref##*v }}-*.iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
 
   release:
     runs-on: ubuntu-latest
@@ -44,8 +45,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: vyos-${{ github.ref##*v }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-${{ github.ref##*v }}-${{ env.ARCHITECTURE }}-iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
       - name: Create release
         id: create_release
@@ -54,8 +55,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: VyOS ${{ github.ref }}
-          body: VyOS ${{ github.ref }}
+          release_name: VyOS LTS Release ${{ github.ref }}
+          body: VyOS LTS Release ${{ github.ref }}
           draft: false
           prerelease: false
 
@@ -66,6 +67,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: vyos-${{ github.ref##*v }}-${{ env.ARCHITECTURE }}-iso/vyos-${{ github.ref##*v }}-${{ env.ARCHITECTURE }}.iso
-          asset_name: vyos-${{ github.ref##*v }}-${{ env.ARCHITECTURE }}.iso
+          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
           asset_content_type: application/octet-stream
