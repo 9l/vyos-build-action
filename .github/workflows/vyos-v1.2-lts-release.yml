@@ -28,9 +28,6 @@ jobs:
       - name: Build VyOS $VERSION ISO file
         working-directory: ./vyos-build
         run: |
-          echo ${{ env.VERSIOM }}
-          echo ${GITHUB_REF##*v}
-          echo $VERSION
           ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
           sudo make iso
           
