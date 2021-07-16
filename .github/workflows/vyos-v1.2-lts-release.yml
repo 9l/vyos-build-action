@@ -53,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: VyOS ${GITHUB_REF##*/} LTS Release
+          name: VyOS v${{ env.VERSION }} LTS Release
           body: VyOS v${{ env.VERSION }} LTS Release
           draft: false
           prerelease: false
