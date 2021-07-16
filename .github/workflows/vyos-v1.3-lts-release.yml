@@ -1,0 +1,71 @@
+name: VyOS v1.3 LTS Release
+
+on:
+  push:
+    tags:
+      - 'v1.3.*'
+
+env:
+  GIT_CLONE_URL: https://github.com/vyos/vyos-build
+  BRANCH: equuleus
+  ARCHITECTURE: amd64
+  BUILD_BY: vyos-build-action@github.com
+  BUILD_TYPE: release
+  VERSION: 1.3.0
+  DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: vyos/vyos-build:crux
+      options: --workdir /vyos --privileged
+
+    steps:
+      - name: Clone source code
+        run:
+          git clone -b $BRANCH --single-branch $GIT_CLONE_URL
+
+      - name: Build ISO
+        working-directory: ./vyos-build
+        run: |
+          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
+          sudo make iso
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: VyOS ${{ github.ref }} LTS Release
+          body: VyOS v${{ env.VERSION }} LTS Release
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          asset_content_type: application/octet-stream
