@@ -48,25 +48,24 @@ jobs:
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Release
+#        id: create_release
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: VyOS ${{ github.ref }} LTS Release
+#          tag_name: ${{ github.ref }}
+          name: VyOS ${{ github.ref }} LTS Release
           body: VyOS v${{ env.VERSION }} LTS Release
           draft: false
           prerelease: false
+          file: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
 
-      - name: Upload release asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-          asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-          asset_content_type: application/octet-stream
+#      - name: Upload release asset
+#        id: upload-release-asset
+#        uses: softprops/action-gh-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          file: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
