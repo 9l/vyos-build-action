@@ -49,23 +49,12 @@ jobs:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
       - name: Release
-#        id: create_release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-#          tag_name: ${{ github.ref }}
-          name: VyOS ${{ github.ref }} LTS Release
+          name: VyOS ${ GITHUB_REF##*/ } LTS Release
           body: VyOS v${{ env.VERSION }} LTS Release
           draft: false
           prerelease: false
-          file: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-
-#      - name: Upload release asset
-#        id: upload-release-asset
-#        uses: softprops/action-gh-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          file: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          files: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
