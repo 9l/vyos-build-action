@@ -7,21 +7,22 @@ on:
 
 env:
   GIT_CLONE_URL: https://github.com/vyos/vyos-build
+  DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
   BRANCH: crux
   BUILD_ARCH: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
   BUILD_VERSION: 1.2.8
-  DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
   BUILD_QEMU: true
   BUILD_QCOW2: true
+  BUILD_HYPERV: true
   BUILD_VMWARE: true
   PACKER_JSON_PATCH: true
   PACKER_JSON_PATCH_FILE: packer.json_ssh-host-port_and_wait-time_crux.patch
   VMWARE_OVFTOOL: VMware-ovftool-4.4.1-16812187-lin.x86_64.bundle
   VMWARE_PRIVATE_KEY: private_key_for_signing_vmware_image.pem
-  WORKING_DIR: vyos-build
   ARTIFACTS_DIR: artifacts
+  WORKING_DIR: vyos-build
   STATUS_SUCCESS: "::set-output name=status::success"
 
 jobs:
@@ -57,14 +58,21 @@ jobs:
         run: |
           [ $PACKER_JSON_PATCH = true ] && git apply $GITHUB_WORKSPACE/patchs/$PACKER_JSON_PATCH_FILE
           [ -e ./build/live-image-$BUILD_ARCH.hybrid.iso ] && make qemu && echo $STATUS_SUCCESS
-          cp -f ./packer_build/qemu/vyos_qemu_image.img ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.img
+          cp -f ./packer_build/qemu/vyos_qemu_image.img ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH-qemu.img
 
       - name: Build QCOW2 Image
         working-directory: ./${{ env.WORKING_DIR }}
         if: steps.qemu.outputs.status == 'success' && env.BUILD_QCOW2 == 'true'
         run: |
           [ -e ./packer_build/qemu/vyos_qemu_image.img ] && make qcow2
-          cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.qcow2
+          cp -f ./build/VyOS-$(date +%Y%m%d).qcow2 ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH-qemu.qcow2
+
+      - name: Build Hyper-V Image
+        working-directory: ./${{ env.WORKING_DIR }}
+        if: steps.qemu.outputs.status == 'success' && env.BUILD_HYPERV == 'true'
+        run: |
+          [ -e ./packer_build/qemu/vyos_qemu_image.img ] && make hyperv
+          cp -f ./packer_build/hyperv/vyos_hyperv_image.vhd ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH-hyperv.vhd
 
       - name: Build VMware Image
         working-directory: ./${{ env.WORKING_DIR }}
@@ -76,8 +84,8 @@ jobs:
           cp -f ./build/vyos_vmware_image-signed-disk1.vmdk ./$ARTIFACTS_DIR/
           cp -f ./build/vyos_vmware_image-signed.mf ./$ARTIFACTS_DIR/
           cp -f ./build/vyos_vmware_image-signed.ovf ./$ARTIFACTS_DIR/
-          cp -f ./build/vyos_vmware_image-signed.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH-signed.ova
-          cp -f ./build/vyos_vmware_image.vmdk ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH.vmdk
+          cp -f ./build/vyos_vmware_image-signed.ova ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH-vmware-signed.ova
+          cp -f ./build/vyos_vmware_image.vmdk ./$ARTIFACTS_DIR/vyos-$BUILD_VERSION-$BUILD_ARCH-vmware.vmdk
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -106,7 +114,8 @@ jobs:
           prerelease: false
           files: |
             vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.iso
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.img
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.qcow2
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-signed.ova
-            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}.vmdk
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-qemu.img
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-qemu.qcow2
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-hyperv.vhd
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-vmware-signed.ova
+            vyos-${{ env.BUILD_VERSION }}-${{ env.BUILD_ARCH }}-vmware.vmdk
