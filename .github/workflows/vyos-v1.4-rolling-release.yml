@@ -37,8 +37,8 @@ jobs:
           path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
 
   release:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -58,7 +58,11 @@ jobs:
           tag_name="v${{ env.VERSION }}"
           hub release edit -a "$asset" -m "" "$tag_name"
 
-      - name: Delete workflow runs
+  delete_old_workflow_runs:
+    needs: release
+    runs-on: ubuntu-latest
+
+      - name: Delete old workflow runs
         uses: GitRML/delete-workflow-runs@main
         with:
           retain_days: 31
