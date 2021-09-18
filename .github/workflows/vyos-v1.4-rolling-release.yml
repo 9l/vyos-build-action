@@ -62,6 +62,7 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
 
+    steps:
       - name: Delete old workflow runs
         uses: GitRML/delete-workflow-runs@main
         with:
