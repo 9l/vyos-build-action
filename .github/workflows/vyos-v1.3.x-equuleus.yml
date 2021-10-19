@@ -1,4 +1,4 @@
-name: VyOS v1.3.x Release Candidate
+name: VyOS v1.3.x Release
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
   BUILD_ARCH: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  BUILD_VERSION: 1.3.0-rc6
+  BUILD_VERSION: 1.3.0-epa2
   BUILD_QEMU: true
   BUILD_QCOW2: true
   BUILD_HYPERV: true
@@ -103,8 +103,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: VyOS v${{ env.BUILD_VERSION }} Release Candidate
-          body: VyOS v${{ env.BUILD_VERSION }} Release Candidate
+          name: VyOS v${{ env.BUILD_VERSION }} Release
+          body: VyOS v${{ env.BUILD_VERSION }} Release
           draft: false
           prerelease: false
           files: |
