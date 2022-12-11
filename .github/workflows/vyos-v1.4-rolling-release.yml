@@ -27,7 +27,9 @@ jobs:
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
+          os=buster64 branch=sagitta make build
+          sudo make clean
+          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
