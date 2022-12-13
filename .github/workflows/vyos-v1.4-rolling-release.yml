@@ -54,9 +54,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "release_asset=$(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ -name 'vyos-${{ env.VERSION }}-*.iso' | xargs)" >> $GITHUB_ENV
-          echo "release_tag_name='v${{ env.VERSION }}'" >> $GITHUB_ENV
-          hub release edit -a "${{ env.release_asset }}" -m "" "${{ env.release_tag_name }}"
+          echo asset=$(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ -name "vyos-${{ env.VERSION }}-*.iso" | xargs)
+          echo tag_name="v${{ env.VERSION }}"
+          hub release edit -a "asset" -m "" "$tag_name"
 
   delete_old_workflow_runs:
     needs: release
