@@ -56,7 +56,7 @@ jobs:
         run: |
           echo asset=$(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ -name "vyos-${{ env.VERSION }}-*.iso" | xargs)
           echo tag_name="v${{ env.VERSION }}"
-          hub release edit -a "asset" -m "" "$tag_name"
+          hub release edit -a "$asset" -m "" "$tag_name"
 
   delete_old_workflow_runs:
     needs: release
