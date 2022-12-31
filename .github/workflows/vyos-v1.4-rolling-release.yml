@@ -3,9 +3,14 @@ name: VyOS v1.4 Rolling Release
 on:
   schedule:
     - cron: 0 3 * * *
+  create:
+  push:
+  workflow_dispatch:
+  
 
 env:
   GIT_CLONE_URL: https://github.com/vyos/vyos-build
+  THIS_REPO: https://github.com/b-/vyos-build-action
   BRANCH: current
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
@@ -22,13 +27,27 @@ jobs:
 
     steps:
       - name: Clone source code
-        run: git clone -b $BRANCH --single-branch $GIT_CLONE_URL
+        run: |
+          git clone -b $BRANCH --single-branch $GIT_CLONE_URL
+          git clone --single-branch --recursive $THIS_REPO
 
+      - name: Prepare #from vyos-tailscale/Makefile:prepare
+        run: |
+          cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
+
+          mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
+          cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
+
+          mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
+          cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
+      
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          sudo make clean
-          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
+          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M) --custom-apt-key /tmp/tailscale.gpg --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" --custom-package "tailscale" --build-comment "VyOS with Tailscale" --build-type release --version 1.4-rolling-`date +%Y%m%d%H%M`_tailscale
+          ln -s build/vyos-${{ env.VERSION }}-*.iso build/vyos-${{ env.VERSION }}-latest.iso
+          
+          #TODO: add minisign
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3

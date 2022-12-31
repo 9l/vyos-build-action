@@ -1,0 +1,3 @@
+[submodule "vyos-tailscale"]
+	path = vyos-tailscale
+	url = https://github.com/DMarby/vyos-tailscale
