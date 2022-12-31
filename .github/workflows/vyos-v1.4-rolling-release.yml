@@ -6,16 +6,25 @@ on:
   create:
   push:
   workflow_dispatch:
+    inputs:
+      prebuild_debug_enabled:
+        type: boolean
+        description: 'debug prebuild (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: false
+      release_debug_enabled:
+        type: boolean
+        description: 'debug release (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: false
   
 
 env:
-  GIT_CLONE_URL: https://github.com/vyos/vyos-build
-  THIS_REPO: https://github.com/b-/vyos-build-action
   BRANCH: current
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  VERSION: 1.4-rolling
+  VERSION: 1.4-rolling_bri
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -26,59 +35,114 @@ jobs:
       options: --workdir /vyos --privileged
 
     steps:
-      - name: Clone source code
-        run: |
-          git clone -b $BRANCH --single-branch $GIT_CLONE_URL
-          git clone --single-branch --recursive $THIS_REPO
+    - name: Get branch name
+      id: branch-name
+      uses: tj-actions/branch-names@v6
 
-      - name: Prepare #from vyos-tailscale/Makefile:prepare
-        run: |
-          cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
-
-          mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
-          cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
-
-          mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
-          cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
+    - name: Generate version string
+      uses: haya14busa/action-cond@v1
+      id: branch-filename
+      with:
+        cond: ${{ steps.branch-name.outputs.is_default == 'true' }}
+        if_true: "${{ env.VERSION }}"
+        if_false: "${{ env.VERSION }}_${{  steps.branch-name.outputs.current_branch  }}"
+    - name: Set variables
+      run: |
+        export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
+        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
+        export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
+        export VERSION_L=${VERSION_BRANCH}-latest
+        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
+        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo -----
+        echo Now, my variables are:
+        cat $GITHUB_ENV
+        echo -----
       
-      - name: Build ISO
-        working-directory: ./vyos-build
-        run: |
-          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M) --custom-apt-key /tmp/tailscale.gpg --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" --custom-package "tailscale" --build-comment "VyOS with Tailscale" --build-type release --version 1.4-rolling-`date +%Y%m%d%H%M`_tailscale
-          ln -s build/vyos-${{ env.VERSION }}-*.iso build/vyos-${{ env.VERSION }}-latest.iso
+    - name: Checkout vyos-build repo
+      uses: actions/checkout@v3
+      with:
+        repository: vyos/vyos-build
+        path: vyos-build
+        
+    - name: Checkout vyos-build-action repo
+      uses: actions/checkout@v3
+      with:
+        path: vyos-build-action
+        submodules: 'true'
+        
+
+    - name: prebuild tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}
+        
+    - name: Prepare #from vyos-tailscale/Makefile:prepare
+
+      #working-directory: vyos-build-action/vyos-build-action
+      run: |
+        cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
+
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
+        cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
+
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
+        cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
+      
+    - name: Build ISO
+      working-directory: vyos-build
+      run: 
+        sudo ./build-vyos-image iso 
+          --architecture $ARCHITECTURE
+          --build-by $BUILD_BY 
+          --build-type $BUILD_TYPE 
+          --version $VERSION_T
+          --custom-apt-key /tmp/tailscale.gpg 
+          --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" 
+          --custom-package "tailscale" 
+          --custom-package "git"
+          --build-comment "bri's custom VyOS 1.4-rolling"
+            
+    - name: move into position 
+      working-directory: ./vyos-build/build
+      run: |
+        pwd
+        ls
+        mkdir -p /tmp/iso
+        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_T
+        file /tmp/iso/$ISO_T
+        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_L
+        file /tmp/iso/$ISO_T
+        
+
           #TODO: add minisign
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
+        
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
+    
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{  env.VERSION_BRANCH  }}
+        files: "/tmp/iso/*"
+        
+#        vyos-build/build/${{ env.ISO_T }}
+#        vyos-build/build/${{ env.ISO_L }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-
-      - name: Upload release asset
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          asset=$(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ -name "vyos-${{ env.VERSION }}-*.iso" | xargs)
-          tag_name="v${{ env.VERSION }}"
-          hub release edit -a "$asset" -m "" "$tag_name"
-
+#    - name: Release
+#      uses: ncipollo/release-action@v1
+#      with:
+#        tag: ${{ env.ISO_T }}
+#        artifacts: "/tmp/iso/*"
+            
+            
   delete_old_workflow_runs:
-    needs: release
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
