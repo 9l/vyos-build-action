@@ -1,8 +1,8 @@
 name: VyOS v1.4 Rolling Release
 
 on:
-#  schedule:
-#    - cron: 0 3 * * *
+  schedule:
+    - cron: 0 3 * * *
   create:
   push:
   workflow_dispatch:
@@ -72,13 +72,8 @@ jobs:
       with:
         path: vyos-build-action
         submodules: 'true'
-        
-
-    - name: prebuild tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}
-        
-    - name: Prepare #from vyos-tailscale/Makefile:prepare
+                
+    - name: Add Tailscale files #from vyos-tailscale/Makefile:prepare
 
       #working-directory: vyos-build-action/vyos-build-action
       run: |
@@ -90,7 +85,9 @@ jobs:
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
-      
+    - name: prebuild tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
     - name: Build ISO
       working-directory: vyos-build
       run: 
@@ -110,36 +107,22 @@ jobs:
       run: |
         pwd
         ls
-        mkdir -p /tmp/iso
-        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_T
-        file /tmp/iso/$ISO_T
-        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_L
-        file /tmp/iso/$ISO_T
+        mkdir -vp /tmp/iso
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
         
-
           #TODO: add minisign
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
         
-
-    
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{  env.VERSION_BRANCH  }}
         files: "/tmp/iso/*"
-        
-#        vyos-build/build/${{ env.ISO_T }}
-#        vyos-build/build/${{ env.ISO_L }}
-
-#    - name: Release
-#      uses: ncipollo/release-action@v1
-#      with:
-#        tag: ${{ env.ISO_T }}
-#        artifacts: "/tmp/iso/*"
-            
+                    
             
   delete_old_workflow_runs:
     needs: build
