@@ -122,20 +122,22 @@ jobs:
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
             
-    - name: minisign tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}      
-    #TODOING: add minisign
-    - name: sign
+
+    - name: install minisig private key
       env:
         MINISIGN_PRIVATE_KEY: ${{  secrets.MINISIGN_PRIVATE_KEY  }}
       run: |
         mkdir -p $HOME/.minisign
         printenv ${MINISIGN_PRIVATE_KEY}  > $HOME/.minisign/minisign.key
+    - name: minisign tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}      
+    #TODOING: add minisign
+    - name: sign
+      run: |
         mkdir /tmp/minisign
         cd /tmp/minisign
         curl -L https://github.com/jedisct1/minisign/releases/download/0.10/minisign-0.10-linux.tar.gz | tar -xzv
-        cd -
         minisign-0.10-linux/x86_64/minisign -Sm /tmp/iso/*
         
 #      uses: thomasdesr/minisign-action@v1
