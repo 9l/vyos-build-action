@@ -116,10 +116,20 @@ jobs:
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
             
     #TODOING: add minisign
-    - uses: thomasdesr/minisign-action@v1
-      with:
-        args: -Sm /tmp/iso/*
-        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY }}
+    - name: sign
+      run: |
+        mkdir -p $HOME/.minisign
+        printenv ${{  secrets.MINISIGN_PRIVATE_KEY  }}  > $HOME/.minisign/minisign.key
+        mkdir /tmp/minisign
+        cd /tmp/minisign
+        curl -L https://github.com/jedisct1/minisign/releases/download/0.10/minisign-0.10-linux.tar.gz | tar -xzv
+        cd -
+        minisign-0.10-linux/x86_64/minisign -Sm /tmp/iso/*
+        
+#      uses: thomasdesr/minisign-action@v1
+#      with:
+#        args: -Sm /tmp/iso/*
+#        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY }}
 
 
     - name: Setup tmate session
