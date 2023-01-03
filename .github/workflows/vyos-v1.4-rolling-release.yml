@@ -79,7 +79,7 @@ jobs:
         submodules: 'true'
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
-     # if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}     
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}     
     - name: Add minisign key
       env: 
         MINISIGN_PUBLIC_KEY: ${{ secrets.MINISIGN_PUBLIC_KEY }}
@@ -100,7 +100,7 @@ jobs:
           
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
-    #  if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
     - name: Build ISO
       working-directory: vyos-build
       run: 
@@ -125,16 +125,16 @@ jobs:
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
             
 
-    - name: install minisig private key
-      env:
-        MINISIGN_PRIVATE_KEY: ${{  secrets.MINISIGN_PRIVATE_KEY  }}
-      run: |
-        mkdir -p $HOME/.minisign
-        printenv ${MINISIGN_PRIVATE_KEY}  > $HOME/.minisign/minisign.key
     - name: minisign tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}      
     #TODOING: add minisign
+    - name: install minisign private key
+      env:
+        MINISIGN_PRIVATE_KEY: ${{  secrets.MINISIGN_PRIVATE_KEY  }}
+      run: |
+        mkdir -p $HOME/.minisign
+        printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
     - name: sign
       run: |
         mkdir /tmp/minisign
