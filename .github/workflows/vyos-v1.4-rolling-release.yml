@@ -12,6 +12,11 @@ on:
         description: 'debug prebuild (https://github.com/marketplace/actions/debugging-with-tmate)'     
         required: false
         default: false
+      minisign_debug_enabled:
+        type: boolean
+        description: 'debug minisign (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: false
       release_debug_enabled:
         type: boolean
         description: 'debug release (https://github.com/marketplace/actions/debugging-with-tmate)'     
@@ -117,6 +122,9 @@ jobs:
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
             
+    - name: minisign tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}      
     #TODOING: add minisign
     - name: sign
       env:
