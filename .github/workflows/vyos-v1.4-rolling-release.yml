@@ -126,17 +126,18 @@ jobs:
             
 
     #TODOING: add minisign
-    - name: minisign tmate session
-      env:
-        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}      
+
     - name: install minisign private key
       env:
         MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
       run: |
         mkdir -p $HOME/.minisign
         printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
+    - name: minisign tmate session
+      env:
+        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
     - name: sign
       run: |
         mkdir /tmp/minisign
