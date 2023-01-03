@@ -143,6 +143,7 @@ jobs:
         mkdir /tmp/minisign
         cd /tmp/minisign
         curl -L https://github.com/jedisct1/minisign/releases/download/0.10/minisign-0.10-linux.tar.gz | tar -xzv
+        cd /tmp/iso
         set +o pipefail
           # https://github.com/thomasdesr/minisign-action/blob/13825dacda125941418e63f6338c4f3837cfc2a7/entrypoint.sh#L17
         (while true ; do echo ; done) | (set -x minisign-0.10-linux/x86_64/minisign -Sm /tmp/iso/*)
@@ -156,7 +157,7 @@ jobs:
 #        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY }}
 
 
-    - name: Setup tmate session
+    - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
         
