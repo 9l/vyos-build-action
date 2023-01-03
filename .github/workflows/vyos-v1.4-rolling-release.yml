@@ -72,6 +72,10 @@ jobs:
       with:
         path: vyos-build-action
         submodules: 'true'
+    
+    - name: Add minisign key
+      run: |
+        echo "${{ MINISIGN_PUBLIC_KEY }}" > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
                 
     - name: Add Tailscale files #from vyos-tailscale/Makefile:prepare
 
@@ -110,8 +114,13 @@ jobs:
         mkdir -vp /tmp/iso
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
-        
-          #TODO: add minisign
+            
+    #TODOING: add minisign
+    - uses: thomasdesr/minisign-action@v1
+      with:
+        args: -Sm /tmp/iso/*
+        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY }}
+
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
