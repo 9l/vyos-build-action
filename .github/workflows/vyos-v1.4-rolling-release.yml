@@ -125,10 +125,12 @@ jobs:
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
             
 
+    #TODOING: add minisign
     - name: minisign tmate session
+      env:
+        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}      
-    #TODOING: add minisign
     - name: install minisign private key
       env:
         MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
