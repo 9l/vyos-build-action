@@ -143,7 +143,12 @@ jobs:
         mkdir /tmp/minisign
         cd /tmp/minisign
         curl -L https://github.com/jedisct1/minisign/releases/download/0.10/minisign-0.10-linux.tar.gz | tar -xzv
-        minisign-0.10-linux/x86_64/minisign -Sm /tmp/iso/*
+        set +o pipefail
+          # https://github.com/thomasdesr/minisign-action/blob/13825dacda125941418e63f6338c4f3837cfc2a7/entrypoint.sh#L17
+        (while true ; do echo ; done) | (set -x minisign-0.10-linux/x86_64/minisign -Sm /tmp/iso/*)
+        # This seems to be the best way to workaround the password prompt
+        # (https://github.com/jedisct1/minisign/issues/43) and because minisign fails if
+        # it can't read from stdin.
         
 #      uses: thomasdesr/minisign-action@v1
 #      with:
