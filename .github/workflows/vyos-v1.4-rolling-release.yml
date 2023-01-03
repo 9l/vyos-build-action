@@ -75,7 +75,7 @@ jobs:
     
     - name: Add minisign key
       run: |
-        echo "${{ MINISIGN_PUBLIC_KEY }}" > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
+        echo "${{ secrets.MINISIGN_PUBLIC_KEY }}" > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
                 
     - name: Add Tailscale files #from vyos-tailscale/Makefile:prepare
 
