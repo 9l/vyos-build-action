@@ -77,7 +77,9 @@ jobs:
       with:
         path: vyos-build-action
         submodules: 'true'
-    
+    - name: prebuild tmate session
+      uses: mxschmitt/action-tmate@v3
+     # if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}     
     - name: Add minisign key
       env: 
         MINISIGN_PUBLIC_KEY: ${{ secrets.MINISIGN_PUBLIC_KEY }}
@@ -98,7 +100,7 @@ jobs:
           
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
+    #  if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
     - name: Build ISO
       working-directory: vyos-build
       run: 
