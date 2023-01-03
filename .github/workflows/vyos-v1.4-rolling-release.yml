@@ -131,7 +131,7 @@ jobs:
     #TODOING: add minisign
     - name: install minisign private key
       env:
-        MINISIGN_PRIVATE_KEY: ${{  secrets.MINISIGN_PRIVATE_KEY  }}
+        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
       run: |
         mkdir -p $HOME/.minisign
         printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
