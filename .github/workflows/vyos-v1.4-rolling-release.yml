@@ -74,8 +74,10 @@ jobs:
         submodules: 'true'
     
     - name: Add minisign key
+      env: 
+        MINISIGN_PUBLIC_KEY: ${{ secrets.MINISIGN_PUBLIC_KEY }}
       run: |
-        echo "${{ secrets.MINISIGN_PUBLIC_KEY }}" > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
+        printenv MINISIGN_PUBLIC_KEY > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
                 
     - name: Add Tailscale files #from vyos-tailscale/Makefile:prepare
 
@@ -117,9 +119,11 @@ jobs:
             
     #TODOING: add minisign
     - name: sign
+      env:
+        MINISIGN_PRIVATE_KEY: ${{  secrets.MINISIGN_PRIVATE_KEY  }}
       run: |
         mkdir -p $HOME/.minisign
-        printenv ${{  secrets.MINISIGN_PRIVATE_KEY  }}  > $HOME/.minisign/minisign.key
+        printenv ${MINISIGN_PRIVATE_KEY}  > $HOME/.minisign/minisign.key
         mkdir /tmp/minisign
         cd /tmp/minisign
         curl -L https://github.com/jedisct1/minisign/releases/download/0.10/minisign-0.10-linux.tar.gz | tar -xzv
