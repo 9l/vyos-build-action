@@ -31,7 +31,7 @@ jobs:
           sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
@@ -42,10 +42,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
